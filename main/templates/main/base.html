@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=390, initial-scale=1.0">
+    <title>{% block title %}Магазин{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header { background: #2c3e50; color: #ecf0f1; padding: 15px 0; }
+        nav {
+            max-width: 1200px; margin: 0 auto; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+        }
+        .nav-brand a { color: #ecf0f1; text-decoration: none; font-size: 1.3rem; font-weight: bold; }
+        .nav-links { display: flex; flex-wrap: wrap; align-items: center; }
+        .nav-links a {
+            color: #bdc3c7; text-decoration: none; margin: 0 10px;
+            padding: 5px 8px; transition: color .3s;
+        }
+        .nav-links a:hover { color: #ecf0f1; }
+        .cart-badge {
+            display: inline-block; background: #e74c3c; color: white;
+            border-radius: 50%; padding: 2px 8px; font-size: .75rem;
+        }
+        .cart-badge.bump { animation: cartBounce .6s ease; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; flex: 1; }
+        .messages {
+            padding: 12px 18px; margin-bottom: 20px; border-radius: 4px;
+            background: #ecf0f1; border-left: 4px solid #3498db;
+        }
+        .messages.error { background: #fdf2f2; border-left-color: #e74c3c; color: #c0392b; }
+        .messages.success { background: #eafaf1; border-left-color: #27ae60; color: #1e8449; }
+        .messages.info { background: #d1ecf1; border-left-color: #17a2b8; color: #0c5460; }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px; margin-top: 20px;
+        }
+        .product-card {
+            background: #fff; border-radius: 6px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            display: flex; flex-direction: column; text-align: center;
+            animation: fadeIn .5s ease-out;
+            transition: transform .3s, box-shadow .3s;
+        }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; border-radius: 4px; margin-bottom: 15px; }
+        .product-card h3 { font-size: 1.1rem; margin: 10px 0; }
+        .product-card .price { font-size: 1.3rem; font-weight: bold; margin: 10px 0; }
+        .product-card .stock { color: #7f8c8d; font-size: .9rem; margin-bottom: 12px; }
+        .product-card .stock.out { color: #e74c3c; }
+
+        .retro-placeholder {
+            height: 200px; border-radius: 4px; margin-bottom: 15px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex; align-items: center; justify-content: center;
+            color: #e94560; font-family: 'Courier New', monospace; font-size: 2.5rem;
+            text-shadow: 0 0 10px #e94560, 0 0 20px #e94560;
+            position: relative; overflow: hidden;
+        }
+        .retro-placeholder::after {
+            content: ''; position: absolute; width: 60px; height: 60px;
+            border: 3px solid #e94560; transform: rotate(45deg);
+            box-shadow: 0 0 20px #e94560, inset 0 0 20px #e94560;
+            animation: rotate3d 6s linear infinite;
+        }
+
+        .rating { color: #f1c40f; font-size: 1.2rem; }
+        .rating-empty { color: #bdc3c7; }
+
+        .btn {
+            display: inline-block; padding: 10px 20px; background: #3498db;
+            color: #fff; border: none; border-radius: 4px; cursor: pointer;
+            text-decoration: none; text-align: center; font-size: .95rem;
+            transition: all .25s ease; position: relative; overflow: hidden;
+        }
+        .btn:hover { background: #2980b9; }
+        .btn:active { transform: scale(.97); }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-outline { background: transparent; color: #3498db; border: 2px solid #3498db; }
+        .btn-outline:hover { background: #3498db; color: #fff; }
+        .btn-disabled { background: #bdc3c7; cursor: not-allowed; opacity: .6; }
+
+        .form-group { margin: 20px 0; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px 12px; border: 1px solid #dce1e8;
+            border-radius: 4px; font-size: 1rem; font-family: inherit;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: #3498db; outline: none;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .input-error { border-color: #e74c3c !important; }
+        .error-text { color: #e74c3c; font-size: .85rem; display: block; margin-top: 5px; }
+
+        .filter-form {
+            background: #fff; padding: 20px; border-radius: 6px;
+            margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .filter-form .form-group { display: inline-block; margin-right: 15px; margin-bottom: 10px; }
+        .filter-form input, .filter-form select {
+            padding: 8px 12px; border: 1px solid #dce1e8; border-radius: 4px;
+        }
+
+        .cart-item {
+            background: #fff; padding: 18px 20px; margin: 10px 0;
+            border-radius: 6px; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+        }
+        .total {
+            font-size: 1.5rem; font-weight: bold; margin: 25px 0;
+            text-align: right; padding: 15px 0; border-top: 2px solid #ecf0f1;
+        }
+
+        .review-item { border-bottom: 1px solid #ecf0f1; padding: 15px 0; }
+        .review-item:last-child { border-bottom: none; }
+        .review-meta { color: #7f8c8d; font-size: .9rem; }
+
+        footer {
+            background: #2c3e50; color: #bdc3c7; text-align: center;
+            padding: 20px; margin-top: 40px;
+        }
+        .empty-state {
+            text-align: center; padding: 60px 20px; background: #fff;
+            border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .actions { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 20px; }
+
+        .form-container {
+            max-width: 500px; margin: 0 auto; background: #fff;
+            padding: 30px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+        }
+        .form-container h1 { text-align: center; margin-bottom: 25px; }
+        .auth-link { text-align: center; margin-top: 20px; color: #7f8c8d; }
+        .auth-link a { color: #3498db; text-decoration: none; }
+        .auth-link a:hover { text-decoration: underline; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cartBounce {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.3) rotate(-5deg); }
+            60% { transform: scale(.95) rotate(3deg); }
+            100% { transform: scale(1); }
+        }
+        @keyframes rotate3d {
+            0% { transform: rotate(45deg) scale(1); }
+            50% { transform: rotate(225deg) scale(1.2); }
+            100% { transform: rotate(405deg) scale(1); }
+        }
+
+        @media (max-width: 430px) {
+            body { font-size: 14px; }
+            .container { padding: 0 12px; margin: 15px auto; }
+            .product-grid { grid-template-columns: 1fr; gap: 15px; }
+            nav { flex-direction: column; gap: 10px; padding: 10px; }
+            .nav-links { justify-content: center; }
+            .nav-links a { font-size: 13px; margin: 4px 6px; }
+            .btn { padding: 12px 20px; width: 100%; }
+            .cart-item { flex-direction: column; text-align: center; }
+            .form-group input, .form-group textarea, .form-group select { font-size: 16px; }
+            .actions { flex-direction: column; }
+            .filter-form .form-group { display: block; margin-right: 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-brand"><a href="{% url 'index' %}">Магазин</a></div>
+            <div class="nav-links">
+                <a href="{% url 'index' %}">Товары</a>
+                <a href="{% url 'cart' %}">
+                    Корзина
+                    {% if request.session.cart %}
+                        <span class="cart-badge">{{ request.session.cart|length }}</span>
+                    {% endif %}
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'wishlist' %}">Избранное</a>
+                    <a href="{% url 'my_orders' %}">Мои заказы</a>
+                    <a href="{% url 'profile' %}">{{ user.username }}</a>
+                    <a href="{% url 'logout' %}">Выйти</a>
+                    <a href="{% url 'admin:index' %}">Админ</a>
+                {% else %}
+                    <a href="{% url 'register' %}">Регистрация</a>
+                    <a href="{% url 'login' %}">Войти</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="messages {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer><p>&copy; 2026 Магазин</p></footer>
+
+    <script>
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href*="/add/"]');
+        if (!link) return;
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+            badge.classList.remove('bump');
+            void badge.offsetWidth;
+            badge.classList.add('bump');
+        }
+    });
+    </script>
+</body>
+</html>

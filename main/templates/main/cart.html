@@ -1,0 +1,47 @@
+{% extends 'main/base.html' %}
+{% block title %}Корзина{% endblock %}
+{% block content %}
+<h1>Корзина</h1>
+
+{% if items %}
+    {% for item in items %}
+    <div class="cart-item">
+        <div>
+            <strong>{{ item.product.name }}</strong><br>
+            {{ item.product.price }} руб. × {{ item.quantity }} = <strong>{{ item.subtotal }} руб.</strong>
+        </div>
+        <form method="POST" action="{% url 'remove_from_cart' item.product.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Удалить товар?')">Удалить</button>
+        </form>
+    </div>
+    {% endfor %}
+
+    <div class="total">Итого: {{ total }} руб.</div>
+    {% if discount > 0 %}
+        <div class="total" style="color:#27ae60;">Скидка по промокоду: −{{ discount }} руб.</div>
+        <div class="total">К оплате: {{ final_total }} руб.</div>
+    {% endif %}
+
+    <div style="background:#fff;padding:20px;border-radius:6px;margin:20px 0;">
+        <h3>Промокод</h3>
+        <form method="POST" action="{% url 'apply_coupon' %}" style="display:flex;gap:10px;flex-wrap:wrap;">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="Введите промокод"
+                   value="{{ coupon.code|default:'' }}"
+                   style="flex:1;padding:10px;border:1px solid #dce1e8;border-radius:4px;min-width:200px;">
+            <button type="submit" class="btn">Применить</button>
+        </form>
+    </div>
+
+    <div class="actions">
+        <a href="{% url 'checkout' %}" class="btn">Оформить заказ</a>
+        <a href="{% url 'index' %}" class="btn btn-outline">Продолжить покупки</a>
+    </div>
+{% else %}
+    <div class="empty-state">
+        <h2>Корзина пуста</h2>
+        <a href="{% url 'index' %}" class="btn">К товарам</a>
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'main/base.html' %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h1>Регистрация</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            <span class="error-text" id="{{ field.name }}-error">{{ field.errors.0 }}</span>
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn" style="width:100%;">Зарегистрироваться</button>
+    </form>
+    <p class="auth-link">
+        Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+    </p>
+</div>
+
+<script>
+document.querySelectorAll('[data-validate]').forEach(input => {
+    input.addEventListener('blur', function() {
+        const fieldName = this.dataset.validate;
+        fetch('/validate-field/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'field=' + fieldName + '&value=' + encodeURIComponent(this.value)
+        })
+        .then(r => r.json())
+        .then(data => {
+            const errEl = document.getElementById(fieldName + '-error');
+            if (!data.valid) {
+                errEl.textContent = data.error;
+                this.classList.add('input-error');
+            } else {
+                errEl.textContent = '';
+                this.classList.remove('input-error');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

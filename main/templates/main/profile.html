@@ -1,0 +1,38 @@
+{% extends 'main/base.html' %}
+{% block title %}Личный кабинет{% endblock %}
+{% block content %}
+<h1>Личный кабинет</h1>
+
+<div style="background:#fff;padding:20px;border-radius:6px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+    <h3>Профиль</h3>
+    <p><strong>Логин:</strong> {{ user.username }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    {% if user.profile %}
+        <p><strong>ФИО:</strong> {{ user.profile.fio|default:"—" }}</p>
+        <p><strong>Телефон:</strong> {{ user.profile.phone|default:"—" }}</p>
+    {% endif %}
+</div>
+
+<h2>История заказов</h2>
+{% if orders %}
+    {% for order in orders %}
+    <div style="background:#fff;padding:15px;border-radius:6px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
+            <div>
+                <strong>Заказ #{{ order.id }}</strong> от {{ order.created_at|date:"d.m.Y" }}
+            </div>
+            <div>
+                <span>{{ order.total }} руб.</span> — 
+                <span>{{ order.get_status_display }}</span>
+            </div>
+        </div>
+        <a href="{% url 'order_detail' order.id %}" class="btn" style="margin-top:10px;">Подробнее</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <p>У вас нет заказов</p>
+        <a href="{% url 'index' %}" class="btn">К товарам</a>
+    </div>
+{% endif %}
+{% endblock %}

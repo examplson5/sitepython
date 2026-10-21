@@ -1,0 +1,29 @@
+{% extends 'main/base.html' %}
+{% block title %}Избранное{% endblock %}
+{% block content %}
+<h1>Избранное</h1>
+
+{% if items %}
+    <div class="product-grid">
+        {% for item in items %}
+        <div class="product-card">
+            <a href="{% url 'product_detail' item.product.slug %}" style="text-decoration:none;color:inherit;">
+                {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                {% else %}
+                    <div class="retro-placeholder">{{ item.product.name|slice:":2"|upper }}</div>
+                {% endif %}
+                <h3>{{ item.product.name }}</h3>
+                <p class="price">{{ item.product.price }} руб.</p>
+            </a>
+            <a href="{% url 'toggle_wishlist' item.product.id %}" class="btn btn-danger" style="margin-top:10px;">Убрать</a>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <h2>Избранное пусто</h2>
+        <a href="{% url 'index' %}" class="btn">К товарам</a>
+    </div>
+{% endif %}
+{% endblock %}

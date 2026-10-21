@@ -1,0 +1,9 @@
+{% extends 'main/base.html' %}
+{% block title %}Заказ оформлен{% endblock %}
+{% block content %}
+<div class="empty-state" style="padding:80px 20px;">
+    <h2>Заказ успешно оформлен</h2>
+    <p>Спасибо за покупку! Мы свяжемся с вами.</p>
+    <a href="{% url 'index' %}" class="btn">Продолжить покупки</a>
+</div>
+{% endblock %}

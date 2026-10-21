@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+{% block title %}Заказ #{{ order.id }}{% endblock %}
+{% block content %}
+<h1>Заказ #{{ order.id }}</h1>
+
+<p>
+    <strong>Статус:</strong>
+    {% if order.status == 'pending' %}
+        <span style="display:inline-block;padding:3px 12px;border-radius:4px;background:#f39c12;color:#fff;">Ожидает обработки</span>
+    {% elif order.status == 'processing' %}
+        <span style="display:inline-block;padding:3px 12px;border-radius:4px;background:#3498db;color:#fff;">В обработке</span>
+    {% elif order.status == 'shipped' %}
+        <span style="display:inline-block;padding:3px 12px;border-radius:4px;background:#9b59b6;color:#fff;">Отправлен</span>
+    {% elif order.status == 'delivered' %}
+        <span style="display:inline-block;padding:3px 12px;border-radius:4px;background:#27ae60;color:#fff;">Доставлен</span>
+    {% else %}
+        <span style="display:inline-block;padding:3px 12px;border-radius:4px;background:#e74c3c;color:#fff;">Отменён</span>
+    {% endif %}
+</p>
+
+<div style="background:#fff;padding:20px;border-radius:6px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+    <h3>Информация о заказе</h3>
+    <p><strong>Дата создания:</strong> {{ order.created_at|date:"d.m.Y H:i" }}</p>
+    <p><strong>Адрес доставки:</strong> {{ order.address }}</p>
+    <p><strong>Телефон:</strong> {{ order.phone }}</p>
+    <p><strong>Способ доставки:</strong> {{ order.get_delivery_method_display }}</p>
+    {% if order.delivery_date %}
+        <p><strong>Желаемая дата доставки:</strong> {{ order.delivery_date|date:"d.m.Y" }}</p>
+    {% endif %}
+    <p><strong>Способ оплаты:</strong> {{ order.get_payment_method_display }}</p>
+    {% if order.discount > 0 %}
+        <p><strong>Скидка:</strong> {{ order.discount }} руб.</p>
+    {% endif %}
+    <p><strong>Итого:</strong> {{ order.total }} руб.</p>
+</div>
+
+<div style="background:#fff;padding:20px;border-radius:6px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+    <h3>Товары в заказе</h3>
+    {% for item in items %}
+    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
+        <span>{{ item.product.name }}</span>
+        <span>{{ item.quantity }} шт. × {{ item.price }} руб.</span>
+    </div>
+    {% empty %}
+    <p>Нет товаров</p>
+    {% endfor %}
+</div>
+
+<div class="actions">
+    <a href="{% url 'my_orders' %}" class="btn btn-outline">Назад к заказам</a>
+    {% if order.status == 'pending' %}
+        <a href="{% url 'cancel_order' order.id %}" class="btn btn-danger"
+           onclick="return confirm('Отменить заказ?')">Отменить заказ</a>
+    {% endif %}
+    <a href="{% url 'index' %}" class="btn btn-outline">Продолжить покупки</a>
+</div>
+{% endblock %}

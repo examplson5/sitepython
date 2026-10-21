@@ -1,0 +1,92 @@
+{% extends 'main/base.html' %}
+{% block title %}Товары{% endblock %}
+{% block content %}
+<h1>Каталог товаров</h1>
+
+<div class="filter-form">
+    <form method="GET">
+        <div class="form-group">
+            <label>Категория:</label>
+            <select name="category">
+                <option value="">Все категории</option>
+                {% for category in categories %}
+                    <option value="{{ category.slug }}" {% if selected_category == category.slug %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Цена от:</label>
+            <input type="number" name="min_price" value="{{ min_price|default:'' }}" placeholder="0" step="100">
+        </div>
+        <div class="form-group">
+            <label>до:</label>
+            <input type="number" name="max_price" value="{{ max_price|default:'' }}" placeholder="10000" step="100">
+        </div>
+        <div class="form-group">
+            <label>Поиск:</label>
+            <input type="text" name="search" value="{{ search|default:'' }}" placeholder="Название...">
+        </div>
+        <div class="form-group">
+            <label>Сортировка:</label>
+            <select name="sort">
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>По названию</option>
+                <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Цена (возр.)</option>
+                <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Цена (убыв.)</option>
+                <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>По рейтингу</option>
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Новые</option>
+            </select>
+        </div>
+        <button type="submit" class="btn">Применить</button>
+        <a href="{% url 'index' %}" class="btn btn-outline">Сбросить</a>
+    </form>
+</div>
+
+{% if products %}
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <a href="{% url 'product_detail' product.slug %}" style="text-decoration:none;color:inherit;">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                    <div class="retro-placeholder">{{ product.name|slice:":2"|upper }}</div>
+                {% endif %}
+                <h3>{{ product.name }}</h3>
+                <div class="rating">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= product.avg_rating %}
+                            ★
+                        {% else %}
+                            <span class="rating-empty">★</span>
+                        {% endif %}
+                    {% endfor %}
+                    ({{ product.reviews_count }})
+                </div>
+                <p class="price">{{ product.price }} руб.</p>
+                <p class="stock {% if product.stock == 0 %}out{% endif %}">
+                    {% if product.stock > 0 %}В наличии: {{ product.stock }} шт.{% else %}Нет в наличии{% endif %}
+                </p>
+            </a>
+            {% if product.stock > 0 %}
+                <a href="{% url 'add_to_cart' product.id %}" class="btn">В корзину</a>
+            {% else %}
+                <span class="btn btn-disabled">Нет в наличии</span>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <a href="{% url 'toggle_wishlist' product.id %}" class="btn btn-outline" style="margin-top:8px;">
+                    {% if product.id in wishlist_ids %}В избранном{% else %}В избранное{% endif %}
+                </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty-state">
+        <h2>Товары не найдены</h2>
+        <p>Попробуйте изменить фильтры</p>
+        <a href="{% url 'index' %}" class="btn">Сбросить</a>
+    </div>
+{% endif %}
+{% endblock %}
